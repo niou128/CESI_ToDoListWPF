@@ -102,6 +102,14 @@ namespace CESI_ToDoListWPF
             DatabaseManager.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
         }
 
+        private void chkCompleted_Checked(object sender, RoutedEventArgs e)
+        {
+            CheckBox checkBox = (CheckBox)sender;
+            Task task = (Task)checkBox.DataContext;
+            task.Completed = checkBox.IsChecked ?? false;
+            DatabaseManager.UpdateTask(task); // Mettre à jour la tâche dans la base de données
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)

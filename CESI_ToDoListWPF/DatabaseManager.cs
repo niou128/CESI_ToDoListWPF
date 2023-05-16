@@ -74,5 +74,20 @@ namespace CESI_ToDoListWPF
                 }
             }
         }
+
+        public static void UpdateTask(Task task)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection($"Data Source={DatabasePath};Version=3;"))
+            {
+                connection.Open();
+
+                using (SQLiteCommand command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = $"UPDATE Tasks SET Completed={(task.Completed ? 1 : 0)} WHERE Id={task.Id}";
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
     }
 }
