@@ -1,19 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CESI_ToDoListWPF
 {
@@ -38,7 +26,8 @@ namespace CESI_ToDoListWPF
         {
             InitializeComponent();
             DataContext = this;
-            Tasks = new ObservableCollection<Task>();
+            DatabaseManager.CreateDatabase(); // Créer la base de données si nécessaire
+            Tasks = DatabaseManager.LoadTasks(); // Charger les tâches à partir de la base de données
         }
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
@@ -48,6 +37,7 @@ namespace CESI_ToDoListWPF
             {
                 Tasks.Add(new Task { Title = title });
                 txtTask.Text = string.Empty;
+                DatabaseManager.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
             }
         }
 
@@ -56,6 +46,7 @@ namespace CESI_ToDoListWPF
             Button btn = (Button)sender;
             Task task = (Task)btn.Tag;
             Tasks.Remove(task);
+            DatabaseManager.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
