@@ -1,11 +1,24 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 namespace CESI_ToDoListWPF
 {
     public class Task : INotifyPropertyChanged
     {
+        private int id;
         private string title;
         private bool completed;
+        private DateTime dateTime;
+
+        public int Id
+        {
+            get { return id; }
+            set
+            {
+                id = value;
+                OnPropertyChanged(nameof(Id));
+            }
+        }
 
         public string Title
         {
@@ -24,6 +37,16 @@ namespace CESI_ToDoListWPF
             {
                 completed = value;
                 OnPropertyChanged(nameof(Completed));
+            }
+        }
+
+        public DateTime DateTime
+        {
+            get { return dateTime; }
+            set
+            {
+                dateTime = value;
+                OnPropertyChanged(nameof(DateTime));
             }
         }
 

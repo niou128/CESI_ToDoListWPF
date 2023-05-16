@@ -7,22 +7,18 @@ namespace CESI_ToDoListWPF
 {
     public static class DatabaseManager
     {
-        private static string databaseFile = "todo.db";
+        private const string DatabasePath = "todolist.db";
 
         public static void CreateDatabase()
         {
-            if (!File.Exists(databaseFile))
+            using (SQLiteConnection connection = new SQLiteConnection($"Data Source={DatabasePath};Version=3;"))
             {
-                SQLiteConnection.CreateFile(databaseFile);
+                connection.Open();
 
-                using (SQLiteConnection connection = new SQLiteConnection(GetConnectionString()))
+                using (SQLiteCommand command = new SQLiteCommand(connection))
                 {
-                    connection.Open();
-
-                    using (SQLiteCommand command = new SQLiteCommand("CREATE TABLE Tasks (Title TEXT, Completed INTEGER)", connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Tasks (Id INTEGER PRIMARY KEY AUTOINCREMENT, Title TEXT, DateTime DATETIME, Completed INTEGER)";
+                    command.ExecuteNonQuery();
                 }
             }
         }
@@ -31,23 +27,24 @@ namespace CESI_ToDoListWPF
         {
             ObservableCollection<Task> tasks = new ObservableCollection<Task>();
 
-            if (!File.Exists(databaseFile))
-                return tasks;
-
-            using (SQLiteConnection connection = new SQLiteConnection(GetConnectionString()))
+            using (SQLiteConnection connection = new SQLiteConnection($"Data Source={DatabasePath};Version=3;"))
             {
                 connection.Open();
 
-                using (SQLiteCommand command = new SQLiteCommand("SELECT * FROM Tasks", connection))
+                using (SQLiteCommand command = new SQLiteCommand(connection))
                 {
+                    command.CommandText = "SELECT Id, Title, DateTime, Completed FROM Tasks ORDER BY DateTime ASC";
+
                     using (SQLiteDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             Task task = new Task
                             {
-                                Title = reader["Title"].ToString(),
-                                Completed = Convert.ToBoolean(reader["Completed"])
+                                Id = reader.GetInt32(0),
+                                Title = reader.GetString(1),
+                                DateTime = reader.GetDateTime(2),
+                                Completed = reader.GetBoolean(3)
                             };
                             tasks.Add(task);
                         }
@@ -60,33 +57,22 @@ namespace CESI_ToDoListWPF
 
         public static void SaveTasks(ObservableCollection<Task> tasks)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(GetConnectionString()))
+            using (SQLiteConnection connection = new SQLiteConnection($"Data Source={DatabasePath};Version=3;"))
             {
                 connection.Open();
 
-                // Supprimer toutes les tâches existantes
-                using (SQLiteCommand deleteCommand = new SQLiteCommand("DELETE FROM Tasks", connection))
+                using (SQLiteCommand command = new SQLiteCommand(connection))
                 {
-                    deleteCommand.ExecuteNonQuery();
-                }
+                    command.CommandText = "DELETE FROM Tasks";
+                    command.ExecuteNonQuery();
 
-                // Insérer les nouvelles tâches
-                using (SQLiteCommand insertCommand = new SQLiteCommand(connection))
-                {
                     foreach (Task task in tasks)
                     {
-                        insertCommand.CommandText = "INSERT INTO Tasks (Title, Completed) VALUES (@title, @completed)";
-                        insertCommand.Parameters.AddWithValue("@title", task.Title);
-                        insertCommand.Parameters.AddWithValue("@completed", task.Completed);
-                        insertCommand.ExecuteNonQuery();
+                        command.CommandText = $"INSERT INTO Tasks (Title, DateTime, Completed) VALUES ('{task.Title}', '{task.DateTime.ToString("yyyy-MM-dd HH:mm:ss")}', {(task.Completed ? 1 : 0)})";
+                        command.ExecuteNonQuery();
                     }
                 }
             }
-        }
-
-        private static string GetConnectionString()
-        {
-            return $"Data Source={databaseFile};Version=3;";
         }
     }
 }
