@@ -11,11 +11,11 @@ namespace CESI_ToDoListWPF
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private ObservableCollection<Task> tasks;
-        private ObservableCollection<int> hours;
-        private ObservableCollection<int> minutes;
+        private ObservableCollection<ToDoTask> tasks = new ObservableCollection<ToDoTask>();
+        private ObservableCollection<int> hours = new ObservableCollection<int>();
+        private ObservableCollection<int> minutes = new ObservableCollection<int>();
 
-        public ObservableCollection<Task> Tasks
+        public ObservableCollection<ToDoTask> Tasks
         {
             get { return tasks; }
             set
@@ -51,8 +51,9 @@ namespace CESI_ToDoListWPF
             DataContext = this;
 
             InitializeTimeData();
-            DatabaseManager.CreateDatabase(); // Créer la base de données si nécessaire
-            Tasks = DatabaseManager.LoadTasks(); // Charger les tâches à partir de la base de données
+            var dbContext = new ApplicationDbContext(); // Créer une instance de ApplicationDbContext
+            dbContext.InitializeDatabase(); // Créer la base de données si nécessaire
+            Tasks = dbContext.LoadTasks(); // Charger les tâches à partir de la base de données
         }
 
         private void InitializeTimeData()
@@ -80,7 +81,7 @@ namespace CESI_ToDoListWPF
 
             if (!string.IsNullOrWhiteSpace(title))
             {
-                Task newTask = new Task
+                ToDoTask newTask = new ToDoTask
                 {
                     Title = title,
                     DateTime = combinedDateTime
@@ -90,27 +91,30 @@ namespace CESI_ToDoListWPF
                 dpTaskDate.SelectedDate = null;
                 cmbHours.SelectedIndex = -1;
                 cmbMinutes.SelectedIndex = -1;
-                DatabaseManager.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
+                var dbContext = new ApplicationDbContext();
+                dbContext.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
             }
         }
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
             Button btn = (Button)sender;
-            Task task = (Task)btn.Tag;
+            ToDoTask task = (ToDoTask)btn.Tag;
             Tasks.Remove(task);
-            DatabaseManager.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
+            var dbContext = new ApplicationDbContext();
+            dbContext.SaveTasks(Tasks); // Sauvegarder les tâches dans la base de données
         }
 
         private void chkCompleted_Checked(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = (CheckBox)sender;
-            Task task = (Task)checkBox.DataContext;
+            ToDoTask task = (ToDoTask)checkBox.DataContext;
             task.Completed = checkBox.IsChecked ?? false;
-            DatabaseManager.UpdateTask(task); // Mettre à jour la tâche dans la base de données
+            var dbContext = new ApplicationDbContext();
+            dbContext.UpdateTask(task); // Mettre à jour la tâche dans la base de données
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

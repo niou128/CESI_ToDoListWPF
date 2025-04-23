@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace CESI_ToDoListWPF
 {
-    public class Task : INotifyPropertyChanged
+    public class ToDoTask : INotifyPropertyChanged
     {
         private int id;
         private string title;
